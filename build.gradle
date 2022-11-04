@@ -1,0 +1,79 @@
+plugins {
+	id 'org.springframework.boot' version '2.7.5'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'jacoco'
+	id 'java'
+}
+
+apply plugin: "jacoco"
+
+group = 'com.bestseller'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+check {
+	finalizedBy jacocoTestCoverageVerification, jacocoTestReport
+}
+
+def excludedFiles = ["**/DummytestApplication.class"]
+
+jacoco {
+	toolVersion = "0.8.7"
+}
+
+jacocoTestReport {
+	doFirst {
+		classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedFiles)
+		}
+	}
+
+	reports {
+		xml.required = false
+		html.required = true
+		csv.required = true
+	}
+
+	afterEvaluate {
+		getClassDirectories().setFrom(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedFiles)
+		})
+	}
+}
+
+jacocoTestCoverageVerification {
+	afterEvaluate {
+		getClassDirectories().setFrom(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedFiles)
+		})
+	}
+
+	violationRules {
+		rule {
+			element = "CLASS"
+			limit {
+				counter = "LINE"
+				value = "COVEREDRATIO"
+				minimum = 1.000000
+			}
+			limit {
+				counter = "BRANCH"
+				value = "COVEREDRATIO"
+				minimum = 1.000000
+			}
+		}
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
